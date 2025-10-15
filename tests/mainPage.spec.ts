@@ -76,6 +76,20 @@ const elements: Elements[] = [
         locator: (page: Page): Locator => page.getByRole('button', { name: 'Search (Ctrl+K)' }),
         name: 'Search field',
     },
+    {
+        locator: (page: Page): Locator => page.getByRole('heading', { name: 'Playwright enables reliable' }),
+        name: 'Playwright content heading text',
+        text: 'Playwright enables reliable end-to-end testing for modern web apps.',
+    },
+    {
+        locator: (page: Page): Locator => page.getByRole('link', { name: 'Get started' }),
+        name: 'Get started button',
+        text: 'Get started',
+        attribute: {
+            type: 'href',
+            value: '/docs/intro',
+        }
+    },
 ];
 
 
@@ -84,28 +98,40 @@ test.describe('Main page tests', () => {
         await page.goto('https://playwright.dev/');
     });
 
-    test('Check header nav elements displaying', async ({page}) => {
+    test('Check page elements displaying', async ({page, browser}) => {
+        test.info().annotations.push({
+            type: 'browser',
+            description: browser.browserType().name() + " " + browser.version(),
+        });
         elements.forEach(({locator, name}) => {
-            test.step(`Check ${name} menu element visibility`, async () => {
+            test.step(`Check ${name} element visibility`, async () => {
                 await expect.soft(locator(page)).toBeVisible();
             });
         });
     });
 
-    test('Check header nav elements names', async ({page}) => {
+    test('Check page elements names', async ({page, browser}) => {
+        test.info().annotations.push({
+            type: 'browser',
+            description: browser.browserType().name() + " " + browser.version(),
+        });
         elements.forEach(({locator, name, text}) => {
             if (text) {
-                test.step(`Check ${name} menu element name`, async () => {
+                test.step(`Check ${name} element name`, async () => {
                     await expect.soft(locator(page)).toContainText(text);
                 });
             }
         });
     });
 
-    test('Check header nav elements href attributes values', async ({page}) => {
+    test('Check elements href attributes values', async ({page, browser}) => {
+        test.info().annotations.push({
+            type: 'browser',
+            description: browser.browserType().name() + " " + browser.version(),
+        });
         elements.forEach(({locator, name, attribute}) => {
             if (attribute && attribute.type === 'href') {
-                test.step(`Check ${name} menu element href attribute values`, async () => {
+                test.step(`Check ${name} element href attribute value`, async () => {
                     await expect.soft(locator(page)).toHaveAttribute(attribute.type, attribute.value);
                 });
             }
@@ -115,21 +141,6 @@ test.describe('Main page tests', () => {
     test("Check header nav element - theme switcher", async ({page}) => {
         await page.getByLabel('Switch between dark and light mode').click();
         await expect.soft(page.locator('html')).toHaveAttribute('data-theme', 'light');
-    });
-
-    test('Check content text', async ({page, browser}) => {
-        test.info().annotations.push({
-            type: 'browser',
-            description: browser.browserType().name() + " " + browser.version(),
-        });
-        await expect.soft(page.getByRole('heading', { name: 'Playwright enables reliable' })).toBeVisible();
-        await expect.soft(page.getByRole('heading', { name: 'Playwright enables reliable' })).toContainText('Playwright enables reliable end-to-end testing for modern web apps.');
-    });
-
-    test('Check Get started button', async ({page}) => {
-        await expect.soft(page.getByRole('link', { name: 'Get started' })).toBeVisible();
-        await expect.soft(page.getByRole('link', { name: 'Get started' })).toContainText('Get started');
-        await expect.soft(page.getByRole('link', { name: 'Get started' })).toHaveAttribute('href', '/docs/intro');
     });
 });
 
