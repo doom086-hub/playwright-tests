@@ -73,6 +73,10 @@ const elements: Elements[] = [
         name: 'Switch theme button',
     },
     {
+        locator: (page: Page): Locator => page.locator('html'),
+        name: 'html tag',
+    },
+    {
         locator: (page: Page): Locator => page.getByRole('button', { name: 'Search (Ctrl+K)' }),
         name: 'Search field',
     },
@@ -153,7 +157,137 @@ test.describe('Main page tests', () => {
             //await page.waitForLoadState('networkidle');
             await expect(page).toHaveScreenshot(`page_with_${theme}_mode.png`);
         })
-    })
+    });
+
+    test('1 Check styles of active theme mode', async ({page}) => {
+        themeMods.forEach((theme) => {
+            console.log(`Start: ${theme}`);
+            const switcher = page.getByRole('button', { name: 'Switch between dark and light' });
+            const html = page.locator('html');
+            const doSwitch = async () => {
+                await expect(switcher).toBeVisible();
+                await switcher.click();
+                console.log('switcher clicked');
+            }
+            test.step(`Check styles of active ${theme} theme mode`, async () => {
+                let htmlTheme = await html.getAttribute('data-theme');
+                console.log(`1 Actual: ${htmlTheme} Expected: ${theme}`);
+                if (htmlTheme === theme) {
+                    console.log('1st if');
+                    await expect.soft(page).toHaveScreenshot(`page_with_${theme}_mode.png`);
+                }
+                else {
+                    console.log('1st else');
+                    await doSwitch();
+                    //await page.waitForTimeout(500);
+                    htmlTheme = await html.getAttribute('data-theme');
+                    console.log(`2 Actual: ${htmlTheme} Expected: ${theme}`);
+                }
+                if (htmlTheme === theme) {
+                    console.log('2nd if');
+                    await expect.soft(page).toHaveScreenshot(`page_with_${theme}_mode.png`);
+                }
+                else {
+                    console.log('2nd else');
+                    await doSwitch();
+                    await page.waitForTimeout(500);
+                    htmlTheme = await html.getAttribute('data-theme');
+                    console.log(`3 Actual: ${htmlTheme} Expected: ${theme}`);
+                    await expect.soft(page).toHaveScreenshot(`page_with_${theme}_mode.png`);
+                }
+
+            });
+        });
+    });
+
+    test('2 Check styles of active theme mode', async ({page}) => {
+        const switcher = page.getByRole('button', { name: 'Switch between dark and light' });
+        const html = page.locator('html');
+        themeMods.forEach((theme) => {
+            console.log(`Start: ${theme}`);
+            test.step(`Check styles of active ${theme} theme mode`, async () => {
+                const doSwitch = async () => {
+                    await expect(switcher).toBeVisible();
+                    await switcher.click();
+                    console.log('switcher clicked');
+                    await page.waitForTimeout(1000);
+                };
+                let htmlTheme = await html.getAttribute('data-theme');
+                console.log(`1 Actual: ${htmlTheme} Expected: ${theme}`);
+                if (htmlTheme !== theme) {
+                    console.log('1st if');
+                    await doSwitch();
+                    htmlTheme = await html.getAttribute('data-theme');
+                    console.log(`2 Actual: ${htmlTheme} Expected: ${theme}`);
+                }
+                if (htmlTheme !== theme) {
+                    console.log('2st if');
+                    await doSwitch();
+                    htmlTheme = await html.getAttribute('data-theme');
+                    console.log(`3 Actual: ${htmlTheme} Expected: ${theme}`);
+                }
+                await expect.soft(page).toHaveScreenshot(`page_with_${theme}_mode.png`);
+                console.log(`4 Actual: ${htmlTheme} Expected: ${theme}`);
+            });
+        });
+    });
+
+    test('3 Check styles of active theme mode', async ({ page }) => {
+        // Получаем локаторы из массива по name
+        const switcher = elements.find(el => el.name === 'Switch theme button')?.locator(page);
+        const html = elements.find(el => el.name === 'html tag')?.locator(page);
+
+        // Проверка на случай, если элемент не найден
+        if (!switcher || !html) {
+            throw new Error('Required elements not found in elements array');
+        }
+
+        // Универсальная функция переключения темы с повторной попыткой
+        const doSwitch = async () => {
+            await expect.soft(switcher).toBeVisible();
+
+            for (let attempt = 1; attempt <= 2; attempt++) {
+                await switcher.click();
+                await page.waitForTimeout(500); // даём время UI обновиться
+
+                const newTheme = await html.getAttribute('data-theme');
+                console.log(`Switch attempt ${attempt}: new theme = ${newTheme}`);
+
+                // Если тема сменилась, выходим
+                if (newTheme) return newTheme;
+
+                // Если после первой попытки не поменялась — пробуем ещё раз
+                if (attempt === 1) {
+                    console.warn('Theme did not switch, retrying...');
+                }
+            }
+
+            throw new Error('Theme did not switch after 2 attempts');
+        };
+
+        for (const theme of themeMods) {
+            await test.step(`Check styles of active ${theme} theme mode`, async () => {
+                let htmlTheme = await html.getAttribute('data-theme');
+                console.log(`Initial Attribute: ${htmlTheme}, Expected Theme: ${theme}`);
+
+                if (htmlTheme !== theme) {
+                    htmlTheme = await doSwitch();
+                }
+
+                // Если после переключения всё ещё не совпадает — делаем последнюю проверку
+                if (htmlTheme !== theme) {
+                    console.warn(`After switch, theme is still "${htmlTheme}", expected "${theme}". Trying again...`);
+                    htmlTheme = await doSwitch();
+                }
+
+                // Убедимся, что тема действительно установилась
+                await expect(html).toHaveAttribute('data-theme', theme);
+
+                // Скриншот в правильной теме
+                await expect(page).toHaveScreenshot(`page_with_${theme}_mode.png`);
+            });
+        }
+    });
 
 });
 
