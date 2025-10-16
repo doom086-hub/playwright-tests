@@ -92,6 +92,8 @@ const elements: Elements[] = [
     },
 ];
 
+const themeMods = ['light', 'dark'];
+
 
 test.describe('Main page tests', () => {
     test.beforeEach(async ({page}) => {
@@ -142,5 +144,16 @@ test.describe('Main page tests', () => {
         await page.getByLabel('Switch between dark and light mode').click();
         await expect.soft(page.locator('html')).toHaveAttribute('data-theme', 'light');
     });
+
+    themeMods.forEach(theme => {
+        test(`Check styles of active ${theme} theme mode`, async ({page}) => {
+            await page.evaluate((theme) => {
+                document.querySelector('html')?.setAttribute('data-theme', theme);
+            }, theme);
+            //await page.waitForLoadState('networkidle');
+            await expect(page).toHaveScreenshot(`page_with_${theme}_mode.png`);
+        })
+    })
+
 });
 
