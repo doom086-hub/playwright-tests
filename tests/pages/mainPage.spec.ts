@@ -1,8 +1,9 @@
-import {test, expect, Page, Locator} from '@playwright/test';
+//import {test, expect, Page, Locator} from '@playwright/test';
+import {test, expect} from '../fixtures/mainPage';
 import {MainPage} from "../models/MainPage";
 import {Misc} from "../misc/misc";
 
-interface Elements {
+/*interface Elements {
     locator: (page: Page) => Locator;
     name: string;
     text?: string;
@@ -10,9 +11,9 @@ interface Elements {
         type: string;
         value: string;
     }
-}
+}*/
 
-const elements: Elements[] = [
+/*const elements: Elements[] = [
     {
         locator: (page: Page): Locator => page.getByRole('link', { name: 'Playwright logo Playwright' }),
         name: 'Playwright logo menu item',
@@ -96,35 +97,37 @@ const elements: Elements[] = [
             value: '/docs/intro',
         }
     },
-];
+];*/
 
-const themeMods = ['light', 'dark'];
+//const themeMods = ['light', 'dark'];
 
-let mainPage: MainPage;
+//let mainPage: MainPage;
 
 
 test.describe('Main page tests', () => {
+/*
     test.beforeEach(async ({page}) => {
         mainPage = new MainPage(page);
         await mainPage.openMainPage();
     });
+*/
 
-    test('Check page elements displaying', async ({browser}) => {
+    test('Check page elements displaying', async ({browser, mainPage}) => {
         const misc = new Misc(browser);
         await misc.browserInfo();
 
         await mainPage.checkElementsVisibility();
     });
 
-    test('Check page elements names', async () => {
+    test('Check page elements names', async ({mainPage}) => {
         await mainPage.checkElementText();
     });
 
-    test('Check elements href attributes values', async ({page, browser}) => {
+    test('Check elements href attributes values', async ({mainPage, page, browser}) => {
         await mainPage.checkAllElementsAttribute('href');
     });
 
-    test("Check light mode theme", async () => {
+    test("Check light mode theme", async ({mainPage}) => {
         await test.step('Checking data-theme attribute of html tag', async () => {
             await mainPage.checkDefaultDataThemeAttributeValue();
         });
@@ -134,7 +137,7 @@ test.describe('Main page tests', () => {
 
     });
 
-    test("Check dark mode theme", async () => {
+    test("Check dark mode theme", async ({mainPage}) => {
         await test.step('Setting dark mode theme', async () => {
             await mainPage.setDarkMode();
         });
@@ -146,16 +149,16 @@ test.describe('Main page tests', () => {
         });
     });
 
-    themeMods.forEach(theme => {
+    /*themeMods.forEach(theme => {
         test.skip(`Check styles of active ${theme} theme mode`, async ({page}) => {
             await page.evaluate((theme) => {
                 document.querySelector('html')?.setAttribute('data-theme', theme);
             }, theme);
             await expect(page).toHaveScreenshot(`page_with_${theme}_mode.png`);
         })
-    });
+    });*/
 
-    test.skip('1 Check styles of active theme mode', async ({page}) => {
+    /*test.skip('1 Check styles of active theme mode', async ({page}) => {
         themeMods.forEach((theme) => {
             console.log(`Start: ${theme}`);
             const switcher = page.getByRole('button', { name: 'Switch between dark and light' });
@@ -194,9 +197,9 @@ test.describe('Main page tests', () => {
 
             });
         });
-    });
+    });*/
 
-    test.skip('2 Check styles of active theme mode', async ({page}) => {
+    /*test.skip('2 Check styles of active theme mode', async ({page}) => {
         const switcher = page.getByRole('button', { name: 'Switch between dark and light' });
         const html = page.locator('html');
         themeMods.forEach((theme) => {
@@ -226,9 +229,9 @@ test.describe('Main page tests', () => {
                 console.log(`4 Actual: ${htmlTheme} Expected: ${theme}`);
             });
         });
-    });
+    });*/
 
-    test.skip('3 Check styles of active theme mode', async ({ page }) => {
+    /*test.skip('3 Check styles of active theme mode', async ({ page }) => {
         // Получаем локаторы из массива по name
         const switcher = elements.find(el => el.name === 'Switch theme button')?.locator(page);
         const html = elements.find(el => el.name === 'html tag')?.locator(page);
@@ -283,7 +286,7 @@ test.describe('Main page tests', () => {
                 await expect(page).toHaveScreenshot(`page_with_${theme}_mode.png`);
             });
         }
-    });
+    });*/
 
 });
 
