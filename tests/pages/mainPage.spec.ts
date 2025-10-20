@@ -1,4 +1,6 @@
 import {test, expect, Page, Locator} from '@playwright/test';
+import {MainPage} from "../models/MainPage";
+import {Misc} from "../misc/misc";
 
 interface Elements {
     locator: (page: Page) => Locator;
@@ -98,68 +100,62 @@ const elements: Elements[] = [
 
 const themeMods = ['light', 'dark'];
 
+let mainPage: MainPage;
+
 
 test.describe('Main page tests', () => {
     test.beforeEach(async ({page}) => {
-        await page.goto('https://playwright.dev/');
+        mainPage = new MainPage(page);
+        await mainPage.openMainPage();
     });
 
-    test('Check page elements displaying', async ({page, browser}) => {
-        test.info().annotations.push({
-            type: 'browser',
-            description: browser.browserType().name() + " " + browser.version(),
-        });
-        elements.forEach(({locator, name}) => {
-            test.step(`Check ${name} element visibility`, async () => {
-                await expect.soft(locator(page)).toBeVisible();
-            });
-        });
+    test('Check page elements displaying', async ({browser}) => {
+        const misc = new Misc(browser);
+        await misc.browserInfo();
+
+        await mainPage.checkElementsVisibility();
     });
 
-    test('Check page elements names', async ({page, browser}) => {
-        test.info().annotations.push({
-            type: 'browser',
-            description: browser.browserType().name() + " " + browser.version(),
-        });
-        elements.forEach(({locator, name, text}) => {
-            if (text) {
-                test.step(`Check ${name} element name`, async () => {
-                    await expect.soft(locator(page)).toContainText(text);
-                });
-            }
-        });
+    test('Check page elements names', async () => {
+        await mainPage.checkElementText();
     });
 
     test('Check elements href attributes values', async ({page, browser}) => {
-        test.info().annotations.push({
-            type: 'browser',
-            description: browser.browserType().name() + " " + browser.version(),
-        });
-        elements.forEach(({locator, name, attribute}) => {
-            if (attribute && attribute.type === 'href') {
-                test.step(`Check ${name} element href attribute value`, async () => {
-                    await expect.soft(locator(page)).toHaveAttribute(attribute.type, attribute.value);
-                });
-            }
-        });
+        await mainPage.checkAllElementsAttribute('href');
     });
 
-    test("Check header nav element - theme switcher", async ({page}) => {
-        await page.getByLabel('Switch between dark and light mode').click();
-        await expect.soft(page.locator('html')).toHaveAttribute('data-theme', 'light');
+    test("Check light mode theme", async () => {
+        await test.step('Checking data-theme attribute of html tag', async () => {
+            await mainPage.checkDefaultDataThemeAttributeValue();
+        });
+        await test.step('Checking styles of light mode with screenshot', async () => {
+            await mainPage.checkLightModeScreenshot();
+        });
+
+    });
+
+    test("Check dark mode theme", async () => {
+        await test.step('Setting dark mode theme', async () => {
+            await mainPage.setDarkMode();
+        });
+        await test.step('Checking data-theme attribute of html tag', async () => {
+            await mainPage.checkDarkMode();
+        });
+        await test.step('Checking styles of dark mode with screenshot', async () => {
+            await mainPage.checkDarkModeScreenshot();
+        });
     });
 
     themeMods.forEach(theme => {
-        test(`Check styles of active ${theme} theme mode`, async ({page}) => {
+        test.skip(`Check styles of active ${theme} theme mode`, async ({page}) => {
             await page.evaluate((theme) => {
                 document.querySelector('html')?.setAttribute('data-theme', theme);
             }, theme);
-            //await page.waitForLoadState('networkidle');
             await expect(page).toHaveScreenshot(`page_with_${theme}_mode.png`);
         })
     });
 
-    test('1 Check styles of active theme mode', async ({page}) => {
+    test.skip('1 Check styles of active theme mode', async ({page}) => {
         themeMods.forEach((theme) => {
             console.log(`Start: ${theme}`);
             const switcher = page.getByRole('button', { name: 'Switch between dark and light' });
@@ -200,7 +196,7 @@ test.describe('Main page tests', () => {
         });
     });
 
-    test('2 Check styles of active theme mode', async ({page}) => {
+    test.skip('2 Check styles of active theme mode', async ({page}) => {
         const switcher = page.getByRole('button', { name: 'Switch between dark and light' });
         const html = page.locator('html');
         themeMods.forEach((theme) => {
@@ -232,7 +228,7 @@ test.describe('Main page tests', () => {
         });
     });
 
-    test('3 Check styles of active theme mode', async ({ page }) => {
+    test.skip('3 Check styles of active theme mode', async ({ page }) => {
         // Получаем локаторы из массива по name
         const switcher = elements.find(el => el.name === 'Switch theme button')?.locator(page);
         const html = elements.find(el => el.name === 'html tag')?.locator(page);
