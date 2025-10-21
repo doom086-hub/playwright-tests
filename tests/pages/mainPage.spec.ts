@@ -1,6 +1,6 @@
 //import {test, expect, Page, Locator} from '@playwright/test';
 import {test, expect} from '../fixtures/mainPage';
-import {MainPage} from "../models/MainPage";
+//import {MainPage} from "../models/MainPage";
 import {Misc} from "../misc/misc";
 
 /*interface Elements {
